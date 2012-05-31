@@ -10,7 +10,7 @@ def get_input(message):
 	editor = os.environ.get('EDITOR') or 'nano'
 	subprocess.call([editor, fname])
 	with open(fname) as f: 
-		return '\n'.join(f.readlines()[1:]).strip()
+		return ''.join(f.readlines()[1:]).strip()
 
 if __name__ == '__main__':
 	print get_input()
