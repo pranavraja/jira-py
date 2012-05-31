@@ -1,0 +1,2 @@
+#!/bin/bash
+python lib/add_comment.py $*
