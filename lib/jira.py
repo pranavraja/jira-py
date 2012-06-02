@@ -35,7 +35,7 @@ class IssueSearcher(APIOperation):
 		super(IssueSearcher, self).__init__(api)
 
 	def search(self, query):
-		return self.api.get('search', { 'jql': query })
+		return self.api.get('search', { 'jql': query, 'fields': 'summary' })
 
 	def get_comments(self, issue):
 		return self.api.get('issue/%s/comment' % issue, {})
