@@ -38,7 +38,7 @@ class IssueSearcher(APIOperation):
 		return self.api.get('search', { 'jql': query, 'fields': 'summary' })
 
 	def get_comments(self, issue):
-		return self.api.get('issue/%s/comment' % issue, {})
+		return self.api.get('issue/%s/comment' % issue, { 'fields': 'body' })
 
 	def get_comment(self, issue, comment_id):
 		return self.api.get('issue/%s/comment/%s' % (issue, comment_id), {})
