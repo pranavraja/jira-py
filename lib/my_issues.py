@@ -11,7 +11,7 @@ def main(query='not (status = Closed) and assignee = currentUser() order by upda
 	else:
 		issues = json.load(resp)['issues']
 		for issue in issues:
-			print '%s %s' % (issue['key'], issue['fields']['summary'])
+			print '%-15s %-15s %s' % (issue['key'], issue['fields']['status']['name'], issue['fields']['summary'])
 
 if __name__ == "__main__":
 	if len(sys.argv) > 1 and sys.argv[1]:
