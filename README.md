@@ -1,5 +1,5 @@
 
-# Jira
+# Jira-py
 
 A lightweight python client for the [Jira REST API](http://docs.atlassian.com/jira/REST/latest/). 
 
@@ -27,7 +27,13 @@ This will list all the comments on that issue. To add a comment, use:
 
 Your `$EDITOR` will be opened to create the comment. If you save and close the temp file, the comment will be added. If not, the addition will be skipped.
 
-There's also `edit_comment` and `delete_comment` for you to try out. Have a look at the API and you can probably easily extend it to do other things.
+To jump to the issue in a web browser, run:
+
+	./jumpto [issueKey]
+
+This will open the issue in your default browser. You might need to log in again.
+
+There's also `edit_comment` and `delete_comment` for you to try out, they should be self-explanatory. Run them without any arguments to get usage details. Have a look at the API and you can probably easily extend it to do other things.
 
 # Credentials
 
