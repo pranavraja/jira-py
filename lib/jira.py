@@ -1,6 +1,7 @@
 import httplib
 import json
 import urllib
+import config
 
 class JiraAPI(object):
 	def __init__(self, host, api_path, username, password):
@@ -24,7 +25,7 @@ class JiraAPI(object):
 
 	@classmethod
 	def default_api(cls):
-		return cls('ninemsn.jira.com', '/rest/api/latest', 'pranavraja', 'password')
+		return cls(config.get('endpoint','host'), config.get('endpoint','path'), config.get('login','username'), config.get('login','password'))
 
 class APIOperation(object):
 	def __init__(self, api):
