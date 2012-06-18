@@ -37,7 +37,7 @@ There's also `edit_comment` and `delete_comment` for you to try out, they should
 
 # Credentials
 
-Credentials are stored in a plain-text config file in $HOME/.jira.cfg with `600` permissions, so they can only be read by you (similar to the approach that the `svn` command line client takes).
+Credentials are stored in a plain-text config file in `~/.jira.cfg` with `600` permissions, so they can only be read by you (similar to the approach that the `svn` command line client takes).
 
 # API
 
