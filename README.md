@@ -32,3 +32,7 @@ There's also `edit_comment` and `delete_comment` for you to try out. Have a look
 # Credentials
 
 Credentials are stored in a plain-text config file in $HOME/.jira.cfg with `600` permissions, so they can only be read by you (similar to the approach that the `svn` command line client takes).
+
+# API
+
+The main API is in `lib/jira.py`. Note that the API will probably change around a lot as I just started this.
