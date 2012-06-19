@@ -41,4 +41,4 @@ Credentials are stored in a plain-text config file in `~/.jira.cfg` with `600` p
 
 # API
 
-The main API is in `lib/jira.py`. Note that the API will probably change around a lot as I just started this.
+The main API is in `lib/jira.py`. The file is well-commented with examples on how to use the API. Note that the API will probably change around a lot as I just started this.

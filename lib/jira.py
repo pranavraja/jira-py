@@ -10,19 +10,29 @@ class JiraAPI(object):
 		self.username = username
 		self.password = password
 
-	def get(self, method, params):
+# Sends a GET request to the jira API, e.g.
+#
+#	get('issue/JRA-1/comment', { 'maxResults': 20 })
+#
+	def get(self, path, params):
 		conn = httplib.HTTPSConnection(self.host)
 		params.update({ 'os_username': self.username, 'os_password': self.password })
-		#print '%s/%s?%s' % (self.api_path, method, urllib.urlencode(params))
-		conn.request('GET', '%s/%s?%s' % (self.api_path, method, urllib.urlencode(params))) 
+		conn.request('GET', '%s/%s?%s' % (self.api_path, path, urllib.urlencode(params))) 
 		return conn.getresponse()
 
-	def send(self, method, requestType, message):
+# Sends a request with HTTP method `method` and `message` json-encoded in the body. e.g.
+#	
+#	send('PUT', 'issue', { 'fields': {} })
+#
+	def send(self, method, path, message):
 		conn = httplib.HTTPSConnection(self.host)
-		conn.request(requestType, '%s/%s?os_username=%s&os_password=%s' % (self.api_path, method, self.username, self.password), json.dumps(message), { 'Content-type': 'application/json' }) 
+		conn.request(method, '%s/%s?os_username=%s&os_password=%s' % (self.api_path, path, self.username, self.password), json.dumps(message), { 'Content-type': 'application/json' }) 
 		resp = conn.getresponse()
 		return resp
 
+# Instantiates a default API class from the configuration
+# 	JiraAPI.default_api()
+#
 	@classmethod
 	def default_api(cls):
 		return cls(config.get('endpoint','host'), config.get('endpoint','path'), config.get('login','username'), config.get('login','password'))
@@ -40,23 +50,48 @@ class Issue(object):
 		self.key = node['key']
 		self.status = node['fields']['status']['name']
 		self.summary = node['fields']['summary']
-	
+
+	def __str__(self):
+		return self.key
+
+# Creates an issue with json representation in `fields`.
+# `fields` is a `dict` and the values that you need to pass are specific to your jira instance. See the [Atlassian docs](http://docs.atlassian.com/jira/REST/latest/#id161551)
+# 	Issue.create({ 'project' { 'id': 100 }, 'summary': 'buggy', 'issuetype': { 'id': 1 }, 'reporter': { 'name': 'pranavraja' }, ...)
+#
 	@classmethod
 	def create(cls, fields):
 		response = cls.api.send('issue', 'POST', { 'fields': fields })
 		if response.status != 201: raise APIException('could not create issue: %d %s' % (response.status, response.message))
 
+# Searches for issues given a JQL `query`, selecting `fields` in the response. Returns a list of `Issue` objects.
+#
+# 	Issue.search('assignee = pranavraja')
+# 	=> [<lib.Jira.Issue object at 0x107e25850>,<lib.jira.Issue object at 0x107e25851>]
+# 	print Issue.search('assignee = pranavraja')[0]
+#   => JRA-1
+# 
 	@classmethod
-	def search(cls, query):
-		response = cls.api.get('search', { 'jql': query, 'fields': 'summary,status' })
+	def search(cls, query, fields='summary,status'):
+		response = cls.api.get('search', { 'jql': query, 'fields': fields })
 		if response.status == 200:
 			return [cls(issue) for issue in json.load(response)['issues']]
 		else:
 			raise APIException('could not get issue: %d %s' % (response.status, response.message))
 
+# Gets a list of comments for this issue. Returns a list of `Comment` objects.
+#
+# 	issue.comments()
+# 	=> [<lib.jira.Comment object at 0x107e25910>]
+# 	print issue.comments()[0]
+# 	=> On hold right now.
+#
 	def comments(self):
 		return Comment.get_by_issue(self.key)
 
+# Adds the comment with raw text `body` to the issue. The raw text may be passed through Jira's wiki markup processor when displayed online.
+#
+# 	issue.add_comment('test comment')
+#
 	def add_comment(self, body):
 		Comment.add(self.key, self.body)
 
@@ -68,6 +103,16 @@ class Comment(object):
 		self.author = node['author']['name']
 		self.body = node['body']
 	
+	def __str__(self):
+		return self.body
+
+# Gets comments by issue with issue key `key`. Returns a list of comments.
+# 
+# 	Comment.get_by_issue('JRA-1')
+# 	=> [<lib.jira.Comment object at 0x107e25910>]
+# 	print Comment.get_by_issue('JRA-1')[0]
+# 	=> Comment body
+#
 	@classmethod
 	def get_by_issue(cls, key):
 		response = cls.api.get('issue/%s/comment' % key, { 'fields': 'body' })
@@ -77,6 +122,11 @@ class Comment(object):
 		else:
 			raise APIException('could not get comments for %s: %d %s' % (key, response.status, response.message))
 
+# Gets a comment with id `id` under issue key `key`. Returns an instance of `Comment`.
+# 
+# 	Comment.get('JRA-1', '10191')
+# 	=> Comment body
+#
 	@classmethod
 	def get(cls, issue_key, id):
 		response = cls.api.get('issue/%s/comment/%s' % (issue_key,id), { 'fields': 'body' })
@@ -85,15 +135,27 @@ class Comment(object):
 		else:
 			raise APIException('could not get comment %s/%s: %d %s' % (key, id, response.status, response.message))
 
+# Adds a comment `comment` for issue with key `issue_key`.
+# 
+# 	Comment.add('JRA-1', 'Comment body')
+#
 	@classmethod
 	def add(cls, issue_key, comment):
 		response = cls.api.send('issue/%s/comment' % self.key, 'POST', { "body": body })
 		if response.status != 201: raise APIException('could not add comment: %d %s' % (response.status, response.message))
 
+# Updates this comment with a new body `body`. Note that the entire comment is replaced in the update.
+# 
+# 	comment.update('new comment text')
+#
 	def update(self, body):
 		response = self.api.send('issue/%s/comment/%s' % (self.issue_key, self.id), 'PUT', { "body": body })
 		if response.status != 200: raise APIException('could not update comment %s/%s: %d %s' % (key, id, response.status, response.message))
 
+# Delete this comment.
+# 
+# 	comment.delete()
+#
 	def delete(self):
 		response = self.api.send('issue/%s/comment/%s' % (self.issueKey, comment_id), 'DELETE', { })
 		if response.status != 200: raise APIException('could not delete comment %s/%s: %d %s' % (key, id, response.status, response.message))
