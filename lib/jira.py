@@ -68,7 +68,7 @@ class Issue(object):
 # 	Issue.search('assignee = pranavraja')
 # 	=> [<lib.Jira.Issue object at 0x107e25850>,<lib.jira.Issue object at 0x107e25851>]
 # 	print Issue.search('assignee = pranavraja')[0]
-#   => JRA-1
+# 	=> JRA-1
 # 
 	@classmethod
 	def search(cls, query, fields='summary,status'):
