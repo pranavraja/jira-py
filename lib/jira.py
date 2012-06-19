@@ -27,47 +27,74 @@ class JiraAPI(object):
 	def default_api(cls):
 		return cls(config.get('endpoint','host'), config.get('endpoint','path'), config.get('login','username'), config.get('login','password'))
 
-class APIOperation(object):
-	def __init__(self, api):
-		self.api = api
+class APIException(Exception):
+	def __init__(self, msg):
+		self.message = msg
 
-class IssueSearcher(APIOperation):
-	def __init__(self, api):
-		super(IssueSearcher, self).__init__(api)
+	def __str__(self):
+		return self.message
 
-	def search(self, query):
-		return self.api.get('search', { 'jql': query, 'fields': 'summary,status' })
+class Issue(object):
+	api = JiraAPI.default_api()
+	def __init__(self, node):
+		self.key = node['key']
+		self.status = node['fields']['status']['name']
+		self.summary = node['fields']['summary']
+	
+	@classmethod
+	def create(cls, fields):
+		response = cls.api.send('issue', 'POST', { 'fields': fields })
+		if response.status != 201: raise APIException('could not create issue: %d %s' % (response.status, response.message))
 
-	def get_comments(self, issue):
-		return self.api.get('issue/%s/comment' % issue, { 'fields': 'body' })
+	@classmethod
+	def search(cls, query):
+		response = cls.api.get('search', { 'jql': query, 'fields': 'summary,status' })
+		if response.status == 200:
+			return [cls(issue) for issue in json.load(response)['issues']]
+		else:
+			raise APIException('could not get issue: %d %s' % (response.status, response.message))
 
-	def get_comment(self, issue, comment_id):
-		return self.api.get('issue/%s/comment/%s' % (issue, comment_id), {})
+	def comments(self):
+		return Comment.get_by_issue(self.key)
 
-class IssueUpdater(APIOperation):
-	def __init__(self, api, issueKey):
-		super(IssueUpdater, self).__init__(api)
-		self.issueKey = issueKey
+	def add_comment(self, body):
+		Comment.add(self.key, self.body)
 
-	def update(self, fields):
-		return self.api.send('issue/%s' % self.issueKey, 'PUT', { "update": fields })
+class Comment(object):
+	api = JiraAPI.default_api()
+	def __init__(self, issue_key, node):
+		self.issue_key = issue_key
+		self.id = node['id'] 
+		self.author = node['author']['name']
+		self.body = node['body']
+	
+	@classmethod
+	def get_by_issue(cls, key):
+		response = cls.api.get('issue/%s/comment' % key, { 'fields': 'body' })
+		if response.status == 200:
+			comments = json.load(response)['comments']
+			return [cls(key, node) for node in comments]
+		else:
+			raise APIException('could not get comments for %s: %d %s' % (key, response.status, response.message))
 
-	def add_comment(self, comment):
-		return self.api.send('issue/%s/comment' % self.issueKey, 'POST', { "body": comment })
+	@classmethod
+	def get(cls, issue_key, id):
+		response = cls.api.get('issue/%s/comment/%s' % (issue_key,id), { 'fields': 'body' })
+		if response.status == 200:
+			return cls(issue_key, json.load(response))
+		else:
+			raise APIException('could not get comment %s/%s: %d %s' % (key, id, response.status, response.message))
 
-	def delete_comment(self, comment_id):
-		return self.api.send('issue/%s/comment/%s' % (self.issueKey, comment_id), 'DELETE', { })
+	@classmethod
+	def add(cls, issue_key, comment):
+		response = cls.api.send('issue/%s/comment' % self.key, 'POST', { "body": body })
+		if response.status != 201: raise APIException('could not add comment: %d %s' % (response.status, response.message))
 
-	def update_comment(self, comment_id, comment):
-		return self.api.send('issue/%s/comment/%s' % (self.issueKey, comment_id), 'PUT', { "body": comment })
+	def update(self, body):
+		response = self.api.send('issue/%s/comment/%s' % (self.issue_key, self.id), 'PUT', { "body": body })
+		if response.status != 200: raise APIException('could not update comment %s/%s: %d %s' % (key, id, response.status, response.message))
 
-	def get_comment(self, comment_id):
-		return IssueSearcher(self.api).get_comment(self.issueKey, comment_id)
-
-class IssueCreator(APIOperation):
-	def __init__(self, api):
-		super(IssueCreator, self).__init__(api)
-
-	def create(self, fields):
-		return self.api.send('issue', 'POST', { 'fields': fields })
+	def delete(self):
+		response = self.api.send('issue/%s/comment/%s' % (self.issueKey, comment_id), 'DELETE', { })
+		if response.status != 200: raise APIException('could not delete comment %s/%s: %d %s' % (key, id, response.status, response.message))
 

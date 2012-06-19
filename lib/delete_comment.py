@@ -1,14 +1,8 @@
 import jira
 import sys
 
-def main(issueKey, comment_id):
-	api = jira.JiraAPI.default_api()
-	updater = jira.IssueUpdater(api, issueKey)
-	resp = updater.delete_comment(comment_id)
-	if resp.status == 204: print 'Deleted.'
-	else: 
-		print '%s %s' % (resp.status, resp.reason)
-		#print resp.read()
+def main(issue_key, comment_id):
+	jira.Comment.get(issue_key, comment_id).delete()
 
 if __name__ == "__main__":
 	if len(sys.argv) <= 1:
@@ -16,4 +10,4 @@ if __name__ == "__main__":
 		sys.exit(0)
 	issueKey = sys.argv[1]
 	comment_id = raw_input('Comment ID: ')
-	main(issueKey, comment_id)
+	main(issue_key, comment_id)
