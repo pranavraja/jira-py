@@ -153,7 +153,7 @@ class Comment(object):
 #
 	@classmethod
 	def add(cls, issue_key, comment):
-		response = cls.api.send('POST', 'issue/%s/comment' % self.key, { "body": body })
+		response = cls.api.send('POST', 'issue/%s/comment' % issue_key, { "body": comment })
 		if response.status != 201: raise APIException('could not add comment: %d %s' % (response.status, response.reason))
 
 # Updates this comment with a new body `body`. Note that the entire comment is replaced in the update.
