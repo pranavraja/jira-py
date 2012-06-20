@@ -31,7 +31,7 @@ class JiraAPI(object):
 # 	print response.status, response.reason
 # 	=> 201 Created
 # 	
-	def send(self, path, method, message):
+	def send(self, method, path, message):
 		conn = httplib.HTTPSConnection(self.host)
 		conn.request(method, '%s/%s?os_username=%s&os_password=%s' % (self.api_path, path, self.username, self.password), json.dumps(message), { 'Content-type': 'application/json' }) 
 		resp = conn.getresponse()
@@ -71,9 +71,8 @@ class Issue(object):
 #
 	@classmethod
 	def create(cls, fields):
-		response = cls.api.send('issue', 'POST', { 'fields': fields })
+		response = cls.api.send('POST', 'issue', { 'fields': fields })
 		if response.status != 201: 
-			print response.read()
 			raise APIException('could not create issue: %d %s' % (response.status, response.reason))
 
 # Searches for issues given a JQL `query`, selecting `fields` in the response. Returns a list of `Issue` objects.
@@ -154,7 +153,7 @@ class Comment(object):
 #
 	@classmethod
 	def add(cls, issue_key, comment):
-		response = cls.api.send('issue/%s/comment' % self.key, 'POST', { "body": body })
+		response = cls.api.send('POST', 'issue/%s/comment' % self.key, { "body": body })
 		if response.status != 201: raise APIException('could not add comment: %d %s' % (response.status, response.reason))
 
 # Updates this comment with a new body `body`. Note that the entire comment is replaced in the update.
@@ -162,7 +161,7 @@ class Comment(object):
 # 	comment.update('new comment text')
 #
 	def update(self, body):
-		response = self.api.send('issue/%s/comment/%s' % (self.issue_key, self.id), 'PUT', { "body": body })
+		response = self.api.send('PUT', 'issue/%s/comment/%s' % (self.issue_key, self.id), { "body": body })
 		if response.status != 200: raise APIException('could not update comment %s/%s: %d %s' % (key, id, response.status, response.reason))
 
 # Delete this comment.
@@ -170,6 +169,6 @@ class Comment(object):
 # 	comment.delete()
 #
 	def delete(self):
-		response = self.api.send('issue/%s/comment/%s' % (self.issueKey, comment_id), 'DELETE', { })
+		response = self.api.send('DELETE', 'issue/%s/comment/%s' % (self.issueKey, comment_id), { })
 		if response.status != 200: raise APIException('could not delete comment %s/%s: %d %s' % (key, id, response.status, response.reason))
 
