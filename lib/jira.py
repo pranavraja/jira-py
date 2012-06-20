@@ -31,7 +31,7 @@ class JiraAPI(object):
 # 	print response.status, response.reason
 # 	=> 201 Created
 # 	
-	def send(self, method, path, message):
+	def send(self, path, method, message):
 		conn = httplib.HTTPSConnection(self.host)
 		conn.request(method, '%s/%s?os_username=%s&os_password=%s' % (self.api_path, path, self.username, self.password), json.dumps(message), { 'Content-type': 'application/json' }) 
 		resp = conn.getresponse()
@@ -72,7 +72,9 @@ class Issue(object):
 	@classmethod
 	def create(cls, fields):
 		response = cls.api.send('issue', 'POST', { 'fields': fields })
-		if response.status != 201: raise APIException('could not create issue: %d %s' % (response.status, response.reason))
+		if response.status != 201: 
+			print response.read()
+			raise APIException('could not create issue: %d %s' % (response.status, response.reason))
 
 # Searches for issues given a JQL `query`, selecting `fields` in the response. Returns a list of `Issue` objects.
 #
