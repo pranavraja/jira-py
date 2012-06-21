@@ -1,3 +1,4 @@
+# A minimial JIRA REST API client.
 import httplib
 import json
 import urllib
@@ -15,10 +16,10 @@ class JiraAPI(object):
 
 # Sends a GET request to the jira API, and returns the file handle for the response.
 #
-#	response = get('issue/JRA-1/comment', { 'maxResults': 20 })
+# 	response = get('issue/JRA-1/comment', 
+#		{ 'maxResults': 20 })
 # 	print response.status, response.reason
 # 	=> 200 OK
-#
 	def get(self, path, params):
 		conn = httplib.HTTPSConnection(self.host)
 		params.update({ 'os_username': self.username, 'os_password': self.password })
@@ -26,11 +27,10 @@ class JiraAPI(object):
 		return conn.getresponse()
 
 # Sends a request with HTTP method `method` and `message` json-encoded in the body. Returns the file handle for the response.
-#	
-#	response = send('POST', 'issue', { 'fields': {} }) # Create issue
-# 	print response.status, response.reason
-# 	=> 201 Created
-# 	
+#
+# 	response = send('POST', 'issue', { 'fields': {} })
+#  	print response.status, response.reason
+#  	=> 201 Created
 	def send(self, method, path, message):
 		conn = httplib.HTTPSConnection(self.host)
 		conn.request(method, '%s/%s?os_username=%s&os_password=%s' % (self.api_path, path, self.username, self.password), json.dumps(message), { 'Content-type': 'application/json' }) 
@@ -43,7 +43,6 @@ class JiraAPI(object):
 # 	=> <lib.jira.JiraAPI object at 0x10e7d5890>
 # 	print JiraAPI.default_api()
 # 	=> Jira API at jira.atlassian.com
-# 
 	@classmethod
 	def default_api(cls):
 		return cls(config.get('endpoint','host'), config.get('endpoint','path'), config.get('login','username'), config.get('login','password'))
@@ -67,8 +66,11 @@ class Issue(object):
 
 # Creates an issue with json representation in `fields`.
 # `fields` is a `dict` and the values that you need to pass are specific to your jira instance. See the [Atlassian docs](http://docs.atlassian.com/jira/REST/latest/#id161551)
-# 	Issue.create({ 'project' { 'id': 100 }, 'summary': 'buggy', 'issuetype': { 'id': 1 }, 'reporter': { 'name': 'pranavraja' }, ...)
 #
+# 	Issue.create({ 'project' { 'id': 100 }, 
+# 	'summary': 'buggy', 'issuetype': { 'id': 1 }, 
+# 	'reporter': { 'name': 'pranavraja' }, ...)
+
 	@classmethod
 	def create(cls, fields):
 		response = cls.api.send('POST', 'issue', { 'fields': fields })
@@ -78,10 +80,10 @@ class Issue(object):
 # Searches for issues given a JQL `query`, selecting `fields` in the response. Returns a list of `Issue` objects.
 #
 # 	Issue.search('assignee = pranavraja')
-# 	=> [<lib.Jira.Issue object at 0x107e25850>,<lib.jira.Issue object at 0x107e25851>]
+# 	=> [<lib.Jira.Issue object at 0x107e25850>,
+# 		<lib.jira.Issue object at 0x107e25851>]
 # 	print Issue.search('assignee = pranavraja')[0]
 # 	=> JRA-1
-# 
 	@classmethod
 	def search(cls, query, fields='summary,status'):
 		response = cls.api.get('search', { 'jql': query, 'fields': fields })
@@ -119,7 +121,7 @@ class Comment(object):
 		return self.body
 
 # Gets comments by issue with issue key `key`. Returns a list of comments.
-# 
+#
 # 	Comment.get_by_issue('JRA-1')
 # 	=> [<lib.jira.Comment object at 0x107e25910>]
 # 	print Comment.get_by_issue('JRA-1')[0]
@@ -135,7 +137,7 @@ class Comment(object):
 			raise APIException('could not get comments for %s: %d %s' % (key, response.status, response.reason))
 
 # Gets a comment with id `id` under issue key `key`. Returns an instance of `Comment`.
-# 
+#
 # 	print Comment.get('JRA-1', '10191')
 # 	=> Comment body
 #
@@ -148,7 +150,7 @@ class Comment(object):
 			raise APIException('could not get comment %s/%s: %d %s' % (key, id, response.status, response.reason))
 
 # Adds a comment `comment` for issue with key `issue_key`.
-# 
+#
 # 	Comment.add('JRA-1', 'Comment body')
 #
 	@classmethod
@@ -157,7 +159,7 @@ class Comment(object):
 		if response.status != 201: raise APIException('could not add comment: %d %s' % (response.status, response.reason))
 
 # Updates this comment with a new body `body`. Note that the entire comment is replaced in the update.
-# 
+#
 # 	comment.update('new comment text')
 #
 	def update(self, body):
@@ -165,7 +167,7 @@ class Comment(object):
 		if response.status != 200: raise APIException('could not update comment %s/%s: %d %s' % (key, id, response.status, response.reason))
 
 # Delete this comment.
-# 
+#
 # 	comment.delete()
 #
 	def delete(self):
