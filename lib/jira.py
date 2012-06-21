@@ -1,4 +1,4 @@
-# A minimial JIRA REST API client.
+# A minimal JIRA REST API client.
 import httplib
 import json
 import urllib
