@@ -43,7 +43,7 @@ To jump to the issue in a web browser, run:
 
 This will open the issue in your default browser. You might need to log in again.
 
-There's also `edit_comment` and `delete_comment` for you to try out, they should be self-explanatory. Run them without any arguments to get usage details. Have a look at the API and you can probably easily extend it to do other things.
+There's also `edit_comment`, `delete_comment`, and `transition` for you to try out, they should be self-explanatory. Run them without any arguments to get usage details. Have a look at the API and you can probably easily extend it to do other things.
 
 # Credentials
 

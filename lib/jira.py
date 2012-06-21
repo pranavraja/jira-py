@@ -64,13 +64,42 @@ class Issue(object):
 	def __str__(self):
 		return self.key
 
-# Creates an issue with json representation in `fields`.
+# Transitions an issue to `state`.
+# 
+# 	Issue.transition('JRA-1', 'Resolved')
+# 
+	@classmethod
+	def transition_issue(cls, key, state):
+		response = cls.api.get('issue/%s/transitions' % key, { 'fields': 'name' })
+		if response.status != 200:
+			raise APIException('could not get transitions for issue: %d %s' % (response.status, response.reason))
+		available_transitions = json.load(response)['transitions']
+		transition = [t for t in available_transitions if t['to']['name'].lower() ==  state.lower()]
+		if not transition:
+			available_states = ','.join(t['to']['name'] for t in available_transitions)
+			raise APIException("no transitions found to '%s'. Choose from: %s" % (state, available_states))
+		response = cls.api.send('POST', 'issue/%s/transitions' % key, { 'transition': { 'id': transition[0]['id'] } })
+		if response.status != 204:
+			raise APIException('could not transition issue to %s: %d %s' % (state, response.status, response.reason))
+
+# Updates an issue with `fields`.
 # `fields` is a `dict` and the values that you need to pass are specific to your jira instance. See the [Atlassian docs](http://docs.atlassian.com/jira/REST/latest/#id161551)
+# 
+# 	Issue.update('JRA-1', { 'summary': 
+# 		{ 'set': 'Bug in business logic' }})
+#
+	@classmethod
+	def update_issue(cls, key, fields):
+		response = cls.api.send('PUT', 'issue/%s' % key, { 'update': fields })
+		if response.status != 200:
+			raise APIException('could not update issue: %d %s' (response.status, response.reason))
+
+# Creates an issue with json representation in `fields`.
 #
 # 	Issue.create({ 'project' { 'id': 100 }, 
 # 	'summary': 'buggy', 'issuetype': { 'id': 1 }, 
 # 	'reporter': { 'name': 'pranavraja' }, ...)
-
+#
 	@classmethod
 	def create(cls, fields):
 		response = cls.api.send('POST', 'issue', { 'fields': fields })
@@ -108,6 +137,20 @@ class Issue(object):
 #
 	def add_comment(self, body):
 		Comment.add(self.key, self.body)
+
+# Updates this issue with `fields`.
+# 
+# 	issue.update({ 'summary': { 'set': 'New summary' } })
+# 
+	def update(self, fields):
+		Issue.update_issue(self.key, fields)
+
+# Transitions this issue to `state`.
+# 
+# 	issue.transition('Resolved')
+# 
+	def transition(self, state):
+		Issue.transition_issue(self.key, state)
 
 class Comment(object):
 	api = JiraAPI.default_api()

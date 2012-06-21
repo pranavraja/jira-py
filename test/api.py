@@ -5,6 +5,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from lib.jira import *
+import json
 
 class MockHTTPResponse(object):
 	def __init__(self, status, body):
@@ -28,6 +29,32 @@ class APITests(unittest.TestCase):
 		Issue.api.send.return_value = MockHTTPResponse(201, '')
 		issue = Issue.create({ 'project': 'ZEUS' })
 		Issue.api.send.assert_called_with('POST', 'issue', { 'fields': { 'project': 'ZEUS' } })
+		
+	def test_issue_update(self):
+		Issue.api = mock.Mock()
+		Issue.api.send.return_value = MockHTTPResponse(200, '')
+		issue = Issue.update_issue('ZEUS-1', { 'project': { 'set': 'ZEUS' } })
+		Issue.api.send.assert_called_with('PUT', 'issue/ZEUS-1', { 'update': { 'project': { 'set': 'ZEUS' } } })
+
+	def test_issue_transition(self):
+		Issue.api = mock.Mock()
+		Issue.api.get.return_value = MockHTTPResponse(200, json.dumps({ 
+			'transitions': 
+			[ 
+				{ 
+					'id':1, 
+					'to': 
+					{ 
+						'id': 5, 
+						'name':'In Progress' 
+					} 
+				}
+			] 
+		})) 
+		Issue.api.send.return_value = MockHTTPResponse(204, '')
+		issue = Issue.transition_issue('ZEUS-1', 'In Progress')
+		Issue.api.get.assert_called_with('issue/ZEUS-1/transitions', { 'fields': 'name' })
+		Issue.api.send.assert_called_with('POST', 'issue/ZEUS-1/transitions', { 'transition': { 'id': 1 } })
 		
 	def test_get_comments(self):
 		Comment.api = mock.Mock()
