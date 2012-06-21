@@ -91,8 +91,8 @@ class Issue(object):
 	@classmethod
 	def update_issue(cls, key, fields):
 		response = cls.api.send('PUT', 'issue/%s' % key, { 'update': fields })
-		if response.status != 200:
-			raise APIException('could not update issue: %d %s' (response.status, response.reason))
+		if response.status != 204:
+			raise APIException('could not update issue: %d %s' % (response.status, response.reason))
 
 # Creates an issue with json representation in `fields`.
 #

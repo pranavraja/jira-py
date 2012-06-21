@@ -32,7 +32,7 @@ class APITests(unittest.TestCase):
 		
 	def test_issue_update(self):
 		Issue.api = mock.Mock()
-		Issue.api.send.return_value = MockHTTPResponse(200, '')
+		Issue.api.send.return_value = MockHTTPResponse(204, '')
 		issue = Issue.update_issue('ZEUS-1', { 'project': { 'set': 'ZEUS' } })
 		Issue.api.send.assert_called_with('PUT', 'issue/ZEUS-1', { 'update': { 'project': { 'set': 'ZEUS' } } })
 
