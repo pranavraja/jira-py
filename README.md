@@ -9,7 +9,13 @@ You'll need python 2.7 installed.
 
 # API
 
-The main API is in `lib/jira.py` and documented at (jira.py)[http://pranavraja.github.com/jira-py/docs/jira.html]. The file is well-commented with examples on how to use the API. Note that the API will probably change around a lot as I just started this.
+The main API is in `lib/jira.py`. You can read the [annotated source code](http://pranavraja.github.com/jira-py/docs/jira.html). Note that the API will probably change around a lot as I just started this.
+
+# Running the tests
+
+To run the tests, you'll need to install [mock](http://pypi.python.org/pypi/mock). Clone the repo and run:
+
+	python test/api.py
 
 # Try it out
 
