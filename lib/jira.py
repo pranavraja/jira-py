@@ -94,6 +94,14 @@ class Issue(object):
 		if response.status != 204:
 			raise APIException('could not update issue: %d %s' % (response.status, response.reason))
 
+# Assigns an issue to `assignee` by username.
+# 
+# 	Issue.assign_issue('JRA-1', 'pranavraja')
+# 
+	@classmethod
+	def assign_issue(cls, key, assignee):
+		cls.update_issue(key, { 'assignee': [{'set':{'name':assignee}}] })
+
 # Creates an issue with json representation in `fields`.
 #
 # 	Issue.create({ 'project' { 'id': 100 }, 
@@ -144,6 +152,13 @@ class Issue(object):
 # 
 	def update(self, fields):
 		Issue.update_issue(self.key, fields)
+
+# Assigns the issue to `assignee`
+# 
+# 	issue.assign('pranavraja')
+# 
+	def assign(self, assignee):
+		Issue.assign_issue(self.key, assignee)
 
 # Transitions this issue to `state`.
 # 
