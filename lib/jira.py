@@ -100,7 +100,7 @@ class Issue(object):
 # 
 	@classmethod
 	def assign_issue(cls, key, assignee):
-		cls.update_issue(key, { 'assignee': [{'set':{'name':assignee}}] })
+		cls.api.send('PUT', 'issue/%s/assignee' % key, { 'name': assignee })
 
 # Creates an issue with json representation in `fields`.
 #

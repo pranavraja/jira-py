@@ -40,7 +40,7 @@ class APITests(unittest.TestCase):
 		Issue.api = mock.Mock()
 		Issue.api.send.return_value = MockHTTPResponse(204, '')
 		issue = Issue.assign_issue('ZEUS-1', 'pranavraja')
-		Issue.api.send.assert_called_with('PUT', 'issue/ZEUS-1', { 'update': { 'assignee': [{ 'set': {'name':'pranavraja'} }] } })
+		Issue.api.send.assert_called_with('PUT', 'issue/ZEUS-1/assignee', {'name':'pranavraja'})
 
 	def test_issue_transition(self):
 		Issue.api = mock.Mock()
