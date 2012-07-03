@@ -45,7 +45,8 @@ class JiraAPI(object):
 # 	=> Jira API at jira.atlassian.com
 	@classmethod
 	def default_api(cls):
-		return cls(config.get('endpoint','host'), config.get('endpoint','path'), config.get('login','username'), config.get('login','password'))
+		conf = config.default_config()
+		return cls(conf.get('jira_default','host'), conf.get('jira_default','path'), conf.get('jira_default','username'), conf.get('jira_default','password'))
 
 class APIException(Exception):
 	def __init__(self, msg):
@@ -55,7 +56,7 @@ class APIException(Exception):
 		return self.message
 
 class Issue(object):
-	api = JiraAPI.default_api()
+	api = JiraAPI.default_api
 	def __init__(self, node):
 		self.key = node['key']
 		self.status = node['fields']['status']['name']
@@ -70,7 +71,7 @@ class Issue(object):
 # 
 	@classmethod
 	def transition_issue(cls, key, state):
-		response = cls.api.get('issue/%s/transitions' % key, { 'fields': 'name' })
+		response = cls.api().get('issue/%s/transitions' % key, { 'fields': 'name' })
 		if response.status != 200:
 			raise APIException('could not get transitions for issue: %d %s' % (response.status, response.reason))
 		available_transitions = json.load(response)['transitions']
@@ -78,7 +79,7 @@ class Issue(object):
 		if not transition:
 			available_states = ','.join(t['to']['name'] for t in available_transitions)
 			raise APIException("no transitions found to '%s'. Choose from: %s" % (state, available_states))
-		response = cls.api.send('POST', 'issue/%s/transitions' % key, { 'transition': { 'id': transition[0]['id'] } })
+		response = cls.api().send('POST', 'issue/%s/transitions' % key, { 'transition': { 'id': transition[0]['id'] } })
 		if response.status != 204:
 			raise APIException('could not transition issue to %s: %d %s' % (state, response.status, response.reason))
 
@@ -90,7 +91,7 @@ class Issue(object):
 #
 	@classmethod
 	def update_issue(cls, key, fields):
-		response = cls.api.send('PUT', 'issue/%s' % key, { 'update': fields })
+		response = cls.api().send('PUT', 'issue/%s' % key, { 'update': fields })
 		if response.status != 204:
 			raise APIException('could not update issue: %d %s' % (response.status, response.reason))
 
@@ -100,7 +101,7 @@ class Issue(object):
 # 
 	@classmethod
 	def assign_issue(cls, key, assignee):
-		cls.api.send('PUT', 'issue/%s/assignee' % key, { 'name': assignee })
+		cls.api().send('PUT', 'issue/%s/assignee' % key, { 'name': assignee })
 
 # Creates an issue with json representation in `fields`.
 #
@@ -110,7 +111,7 @@ class Issue(object):
 #
 	@classmethod
 	def create(cls, fields):
-		response = cls.api.send('POST', 'issue', { 'fields': fields })
+		response = cls.api().send('POST', 'issue', { 'fields': fields })
 		if response.status != 201: 
 			raise APIException('could not create issue: %d %s' % (response.status, response.reason))
 
@@ -123,7 +124,7 @@ class Issue(object):
 # 	=> JRA-1
 	@classmethod
 	def search(cls, query, fields='summary,status'):
-		response = cls.api.get('search', { 'jql': query, 'fields': fields })
+		response = cls.api().get('search', { 'jql': query, 'fields': fields })
 		if response.status == 200:
 			return [cls(issue) for issue in json.load(response)['issues']]
 		else:
@@ -168,7 +169,7 @@ class Issue(object):
 		Issue.transition_issue(self.key, state)
 
 class Comment(object):
-	api = JiraAPI.default_api()
+	api = JiraAPI.default_api
 	def __init__(self, issue_key, node):
 		self.issue_key = issue_key
 		self.id = node['id'] 
@@ -187,7 +188,7 @@ class Comment(object):
 #
 	@classmethod
 	def get_by_issue(cls, key):
-		response = cls.api.get('issue/%s/comment' % key, { 'fields': 'body' })
+		response = cls.api().get('issue/%s/comment' % key, { 'fields': 'body' })
 		if response.status == 200:
 			comments = json.load(response)['comments']
 			return [cls(key, node) for node in comments]
@@ -201,7 +202,7 @@ class Comment(object):
 #
 	@classmethod
 	def get(cls, issue_key, id):
-		response = cls.api.get('issue/%s/comment/%s' % (issue_key,id), { 'fields': 'body' })
+		response = cls.api().get('issue/%s/comment/%s' % (issue_key,id), { 'fields': 'body' })
 		if response.status == 200:
 			return cls(issue_key, json.load(response))
 		else:
@@ -213,7 +214,7 @@ class Comment(object):
 #
 	@classmethod
 	def add(cls, issue_key, comment):
-		response = cls.api.send('POST', 'issue/%s/comment' % issue_key, { "body": comment })
+		response = cls.api().send('POST', 'issue/%s/comment' % issue_key, { "body": comment })
 		if response.status != 201: raise APIException('could not add comment: %d %s' % (response.status, response.reason))
 
 # Updates this comment with a new body `body`. Note that the entire comment is replaced in the update.
@@ -221,7 +222,7 @@ class Comment(object):
 # 	comment.update('new comment text')
 #
 	def update(self, body):
-		response = self.api.send('PUT', 'issue/%s/comment/%s' % (self.issue_key, self.id), { "body": body })
+		response = self.api().send('PUT', 'issue/%s/comment/%s' % (self.issue_key, self.id), { "body": body })
 		if response.status != 200: raise APIException('could not update comment %s/%s: %d %s' % (key, id, response.status, response.reason))
 
 # Delete this comment.
@@ -229,6 +230,6 @@ class Comment(object):
 # 	comment.delete()
 #
 	def delete(self):
-		response = self.api.send('DELETE', 'issue/%s/comment/%s' % (self.issue_key, self.id), { })
+		response = self.api().send('DELETE', 'issue/%s/comment/%s' % (self.issue_key, self.id), { })
 		if response.status != 200: raise APIException('could not delete comment %s/%s: %d %s' % (key, id, response.status, response.reason))
 

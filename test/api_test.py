@@ -17,34 +17,39 @@ class MockHTTPResponse(object):
 
 class APITests(unittest.TestCase):
 	def test_issue_search(self):
-		Issue.api = mock.Mock()
-		Issue.api.get.return_value = MockHTTPResponse(200, '{ "issues": []}')
+		api_mock = mock.Mock()
+		Issue.api = mock.Mock(return_value=api_mock)
+		api_mock.get.return_value = MockHTTPResponse(200, '{ "issues": []}')
 		issue = Issue.search('jql')
-		Issue.api.get.assert_called_with('search', { 'jql': 'jql', 'fields': 'summary,status' })
+		api_mock.get.assert_called_with('search', { 'jql': 'jql', 'fields': 'summary,status' })
 		issue = Issue.search('more jql', 'summary,description')
-		Issue.api.get.assert_called_with('search', { 'jql': 'more jql', 'fields': 'summary,description' })
+		api_mock.get.assert_called_with('search', { 'jql': 'more jql', 'fields': 'summary,description' })
 
 	def test_issue_create(self):
-		Issue.api = mock.Mock()
-		Issue.api.send.return_value = MockHTTPResponse(201, '')
+		api_mock = mock.Mock()
+		Issue.api = mock.Mock(return_value=api_mock)
+		api_mock.send.return_value = MockHTTPResponse(201, '')
 		issue = Issue.create({ 'project': 'ZEUS' })
-		Issue.api.send.assert_called_with('POST', 'issue', { 'fields': { 'project': 'ZEUS' } })
+		api_mock.send.assert_called_with('POST', 'issue', { 'fields': { 'project': 'ZEUS' } })
 		
 	def test_issue_update(self):
-		Issue.api = mock.Mock()
-		Issue.api.send.return_value = MockHTTPResponse(204, '')
+		api_mock = mock.Mock()
+		Issue.api = mock.Mock(return_value=api_mock)
+		api_mock.send.return_value = MockHTTPResponse(204, '')
 		issue = Issue.update_issue('ZEUS-1', { 'project': { 'set': 'ZEUS' } })
-		Issue.api.send.assert_called_with('PUT', 'issue/ZEUS-1', { 'update': { 'project': { 'set': 'ZEUS' } } })
+		api_mock.send.assert_called_with('PUT', 'issue/ZEUS-1', { 'update': { 'project': { 'set': 'ZEUS' } } })
 
 	def test_issue_assign(self):
-		Issue.api = mock.Mock()
-		Issue.api.send.return_value = MockHTTPResponse(204, '')
+		api_mock = mock.Mock()
+		Issue.api = mock.Mock(return_value=api_mock)
+		api_mock.send.return_value = MockHTTPResponse(204, '')
 		issue = Issue.assign_issue('ZEUS-1', 'pranavraja')
-		Issue.api.send.assert_called_with('PUT', 'issue/ZEUS-1/assignee', {'name':'pranavraja'})
+		api_mock.send.assert_called_with('PUT', 'issue/ZEUS-1/assignee', {'name':'pranavraja'})
 
 	def test_issue_transition(self):
-		Issue.api = mock.Mock()
-		Issue.api.get.return_value = MockHTTPResponse(200, json.dumps({ 
+		api_mock = mock.Mock()
+		Issue.api = mock.Mock(return_value=api_mock)
+		api_mock.get.return_value = MockHTTPResponse(200, json.dumps({ 
 			'transitions': 
 			[ 
 				{ 
@@ -57,42 +62,46 @@ class APITests(unittest.TestCase):
 				}
 			] 
 		})) 
-		Issue.api.send.return_value = MockHTTPResponse(204, '')
+		api_mock.send.return_value = MockHTTPResponse(204, '')
 		issue = Issue.transition_issue('ZEUS-1', 'In Progress')
-		Issue.api.get.assert_called_with('issue/ZEUS-1/transitions', { 'fields': 'name' })
-		Issue.api.send.assert_called_with('POST', 'issue/ZEUS-1/transitions', { 'transition': { 'id': 1 } })
+		api_mock.get.assert_called_with('issue/ZEUS-1/transitions', { 'fields': 'name' })
+		api_mock.send.assert_called_with('POST', 'issue/ZEUS-1/transitions', { 'transition': { 'id': 1 } })
 		
 	def test_get_comments(self):
-		Comment.api = mock.Mock()
-		Comment.api.get.return_value = MockHTTPResponse(200, '{ "comments": [] }')
+		api_mock = mock.Mock()
+		Comment.api = mock.Mock(return_value=api_mock)
+		api_mock.get.return_value = MockHTTPResponse(200, '{ "comments": [] }')
 		issue = Comment.get_by_issue('KEY')
-		Comment.api.get.assert_called_with('issue/KEY/comment', { 'fields': 'body' })
+		api_mock.get.assert_called_with('issue/KEY/comment', { 'fields': 'body' })
 
 	def test_add_comment(self):
-		Comment.api = mock.Mock()
-		Comment.api.send.return_value = MockHTTPResponse(201, '')
+		api_mock = mock.Mock()
+		Comment.api = mock.Mock(return_value=api_mock)
+		api_mock.send.return_value = MockHTTPResponse(201, '')
 		Comment.add('KEY', 'comment')
-		Comment.api.send.assert_called_with('POST', 'issue/KEY/comment', { "body": 'comment' })
+		api_mock.send.assert_called_with('POST', 'issue/KEY/comment', { "body": 'comment' })
 
 	def test_update_comment(self):
-		Comment.api = mock.Mock()
-		Comment.api.get.return_value = MockHTTPResponse(200, '{ "id": 23, "author": { "name": "pranavraja" }, "body": "hello"  }')
-		Comment.api.send.return_value = MockHTTPResponse(200, '')
+		api_mock = mock.Mock()
+		Comment.api = mock.Mock(return_value=api_mock)
+		api_mock.get.return_value = MockHTTPResponse(200, '{ "id": 23, "author": { "name": "pranavraja" }, "body": "hello"  }')
+		api_mock.send.return_value = MockHTTPResponse(200, '')
 		comment = Comment.get('JRA-1', '23')
 		self.assertEqual(comment.body, 'hello')
 		comment.update('hola')
-		Comment.api.get.assert_called_with('issue/JRA-1/comment/23', { 'fields': 'body' })
-		Comment.api.send.assert_called_with('PUT', 'issue/JRA-1/comment/23', { 'body': 'hola' }) 
+		api_mock.get.assert_called_with('issue/JRA-1/comment/23', { 'fields': 'body' })
+		api_mock.send.assert_called_with('PUT', 'issue/JRA-1/comment/23', { 'body': 'hola' }) 
 
 	def test_delete_comment(self):
-		Comment.api = mock.Mock()
-		Comment.api.get.return_value = MockHTTPResponse(200, '{ "id": 23, "author": { "name": "pranavraja" }, "body": "hello"  }')
-		Comment.api.send.return_value = MockHTTPResponse(200, '')
+		api_mock = mock.Mock()
+		Comment.api = mock.Mock(return_value=api_mock)
+		api_mock.get.return_value = MockHTTPResponse(200, '{ "id": 23, "author": { "name": "pranavraja" }, "body": "hello"  }')
+		api_mock.send.return_value = MockHTTPResponse(200, '')
 		comment = Comment.get('JRA-1', '23')
 		self.assertEqual(comment.body, 'hello')
 		comment.delete()
-		Comment.api.get.assert_called_with('issue/JRA-1/comment/23', { 'fields': 'body' })
-		Comment.api.send.assert_called_with('DELETE', 'issue/JRA-1/comment/23', {  }) 
+		api_mock.get.assert_called_with('issue/JRA-1/comment/23', { 'fields': 'body' })
+		api_mock.send.assert_called_with('DELETE', 'issue/JRA-1/comment/23', {  }) 
 
 if __name__ == '__main__':
 	unittest.main()
