@@ -13,9 +13,9 @@ The main API is in `lib/jira.py`. You can read the [annotated source code](http:
 
 # Running the tests
 
-To run the tests, you'll need to install [mock](http://pypi.python.org/pypi/mock). Clone the repo and run:
+To run the tests, you'll need to install [nose](http://pypi.python.org/pypi/nose) [mock](http://pypi.python.org/pypi/mock). Clone the repo and run:
 
-	python test/api.py
+	nosetests
 
 # Try it out
 
