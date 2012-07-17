@@ -1,0 +1,2 @@
+#!/bin/bash
+python `dirname "$0"`/my_issues.py "$1"

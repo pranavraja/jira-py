@@ -1,5 +1,7 @@
-import jira
 import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+import lib.jira as jira
 import json
 import editor
 
@@ -12,4 +14,8 @@ if __name__ == "__main__":
 	if not comment:
 		print 'No comment entered, exiting...'
 		sys.exit(0)
-	jira.Comment.add(issue_key, comment)
+	try:
+		jira.Comment.add(issue_key, comment)
+	except jira.APIException, e:
+		print e.response.status, e.response.reason
+		print e.response.read()

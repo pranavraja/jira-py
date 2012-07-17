@@ -1,2 +1,0 @@
-#!/bin/bash
-python lib/search_issues.py "$1"

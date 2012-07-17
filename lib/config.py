@@ -16,8 +16,8 @@ class Configuration(object):
 			passwd = None
 			passwd2 = None
 			while not passwd_confirmed:
-				passwd = getpass.getpass()
-				passwd2 = getpass.getpass('Confirm: ')
+				passwd = getpass.getpass('password: ')
+				passwd2 = getpass.getpass('confirm: ')
 				if passwd != passwd2: print 'passwords do not match.'
 				else: passwd_confirmed = True
 			self.parser.set('jira_default','password', passwd)

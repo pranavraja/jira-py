@@ -49,8 +49,9 @@ class JiraAPI(object):
 		return cls(conf.get('jira_default','host'), conf.get('jira_default','path'), conf.get('jira_default','username'), conf.get('jira_default','password'))
 
 class APIException(Exception):
-	def __init__(self, msg):
+	def __init__(self, msg, response):
 		self.message = msg
+		self.response = response
 
 	def __str__(self):
 		return self.message
@@ -73,15 +74,15 @@ class Issue(object):
 	def transition_issue(cls, key, state):
 		response = cls.api().get('issue/%s/transitions' % key, { 'fields': 'name' })
 		if response.status != 200:
-			raise APIException('could not get transitions for issue: %d %s' % (response.status, response.reason))
+			raise APIException('could not get transitions for issue', response)
 		available_transitions = json.load(response)['transitions']
 		transition = [t for t in available_transitions if t['to']['name'].lower() ==  state.lower()]
 		if not transition:
 			available_states = ','.join(t['to']['name'] for t in available_transitions)
-			raise APIException("no transitions found to '%s'. Choose from: %s" % (state, available_states))
+			raise APIException("no transitions found to '%s'. Choose from: %s" % (state, available_states), None)
 		response = cls.api().send('POST', 'issue/%s/transitions' % key, { 'transition': { 'id': transition[0]['id'] } })
 		if response.status != 204:
-			raise APIException('could not transition issue to %s: %d %s' % (state, response.status, response.reason))
+			raise APIException('could not transition issue to %s' % state, response)
 
 # Updates an issue with `fields`.
 # `fields` is a `dict` and the values that you need to pass are specific to your jira instance. See the [Atlassian docs](http://docs.atlassian.com/jira/REST/latest/#id161551)
@@ -93,7 +94,7 @@ class Issue(object):
 	def update_issue(cls, key, fields):
 		response = cls.api().send('PUT', 'issue/%s' % key, { 'update': fields })
 		if response.status != 204:
-			raise APIException('could not update issue: %d %s' % (response.status, response.reason))
+			raise APIException('could not update issue', response)
 
 # Assigns an issue to `assignee` by username.
 # 
@@ -113,7 +114,7 @@ class Issue(object):
 	def create(cls, fields):
 		response = cls.api().send('POST', 'issue', { 'fields': fields })
 		if response.status != 201: 
-			raise APIException('could not create issue: %d %s' % (response.status, response.reason))
+			raise APIException('could not create issue', response)
 
 # Searches for issues given a JQL `query`, selecting `fields` in the response. Returns a list of `Issue` objects.
 #
@@ -128,7 +129,7 @@ class Issue(object):
 		if response.status == 200:
 			return [cls(issue) for issue in json.load(response)['issues']]
 		else:
-			raise APIException('could not get issue: %d %s' % (response.status, response.reason))
+			raise APIException('could not get issue', response)
 
 # Gets a list of comments for this issue. Returns a list of `Comment` objects.
 #
@@ -193,7 +194,7 @@ class Comment(object):
 			comments = json.load(response)['comments']
 			return [cls(key, node) for node in comments]
 		else:
-			raise APIException('could not get comments for %s: %d %s' % (key, response.status, response.reason))
+			raise APIException('could not get comments for %s' % key, response)
 
 # Gets a comment with id `id` under issue key `key`. Returns an instance of `Comment`.
 #
@@ -206,7 +207,7 @@ class Comment(object):
 		if response.status == 200:
 			return cls(issue_key, json.load(response))
 		else:
-			raise APIException('could not get comment %s/%s: %d %s' % (key, id, response.status, response.reason))
+			raise APIException('could not get comment %s/%s' % (key, id), response)
 
 # Adds a comment `comment` for issue with key `issue_key`.
 #
@@ -215,7 +216,7 @@ class Comment(object):
 	@classmethod
 	def add(cls, issue_key, comment):
 		response = cls.api().send('POST', 'issue/%s/comment' % issue_key, { "body": comment })
-		if response.status != 201: raise APIException('could not add comment: %d %s' % (response.status, response.reason))
+		if response.status != 201: raise APIException('could not add comment', response)
 
 # Updates this comment with a new body `body`. Note that the entire comment is replaced in the update.
 #
@@ -223,7 +224,7 @@ class Comment(object):
 #
 	def update(self, body):
 		response = self.api().send('PUT', 'issue/%s/comment/%s' % (self.issue_key, self.id), { "body": body })
-		if response.status != 200: raise APIException('could not update comment %s/%s: %d %s' % (key, id, response.status, response.reason))
+		if response.status != 200: raise APIException('could not update comment %s/%s' % (key, id), response)
 
 # Delete this comment.
 #
@@ -231,5 +232,5 @@ class Comment(object):
 #
 	def delete(self):
 		response = self.api().send('DELETE', 'issue/%s/comment/%s' % (self.issue_key, self.id), { })
-		if response.status != 200: raise APIException('could not delete comment %s/%s: %d %s' % (key, id, response.status, response.reason))
+		if response.status != 200: raise APIException('could not delete comment %s/%s' % (key, id), response)
 
