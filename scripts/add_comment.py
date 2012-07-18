@@ -3,7 +3,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import lib.jira as jira
 import json
-import editor
+import lib.editor as editor
 
 if __name__ == "__main__":
 	if len(sys.argv) <= 1:
