@@ -5,23 +5,15 @@ A lightweight python client for the [Jira REST API](http://docs.atlassian.com/ji
 
 # Prerequisites
 
-You'll need python 2.7 installed.
-
-# API
-
-The main API is in `lib/jira.py`. You can read the [annotated source code](http://pranavraja.github.com/jira-py/docs/jira.html). Note that the API will probably change around a lot as I just started this.
-
-# Running the tests
-
-To run the tests, you'll need to install [nose](http://pypi.python.org/pypi/nose) and [mock](http://pypi.python.org/pypi/mock). Easiest way to do this is through pip, e.g. `sudo pip install mock nose`
-
-After installing the prerequisites, clone the repo and run:
-
-	nosetests
+You'll need python 2.7 and [pip](http://pypi.python.org/pypi/pip/) installed.
 
 # Try it out
 
 Clone the repo, and run:
+
+	pip install -r requirements.txt
+
+This will pull in the dependencies for the library. Once this is done, run:
 
 	scripts/mine
 
@@ -46,6 +38,18 @@ To jump to the issue in a web browser, run:
 This will open the issue in your default browser. You might need to log in again.
 
 There's also `scripts/search`, `scripts/edit_comment`, `scripts/delete_comment`, and `scripts/transition` for you to try out, they should be self-explanatory. Run them without any arguments to get usage details. Have a look at the API and you can probably easily extend it to do other things.
+
+# API
+
+The main API is in `lib/jira.py`. You can read the [annotated source code](http://pranavraja.github.com/jira-py/docs/jira.html). Note that the API will probably change around a lot as I just started this.
+
+# Running the tests
+
+To run the tests, you'll need to install [nose](http://pypi.python.org/pypi/nose) and [mock](http://pypi.python.org/pypi/mock). Easiest way to do this is through pip, e.g. `sudo pip install mock nose`
+
+After installing the prerequisites, clone the repo and run:
+
+	nosetests
 
 # Credentials
 
