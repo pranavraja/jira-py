@@ -7,7 +7,7 @@ from termcolor import colored
 
 def colored_status(status):
 	color = None
-	if status.strip() == 'Open': color = 'blue'
+	if status.strip() == 'Closed': color = 'blue'
 	elif status.strip() == 'In Progress': color = 'magenta'
 	elif status.strip() == 'Resolved': color = 'green'
 	else: color = 'yellow'
