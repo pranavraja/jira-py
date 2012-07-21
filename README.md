@@ -39,6 +39,18 @@ This will open the issue in your default browser. You might need to log in again
 
 There's also `scripts/search`, `scripts/edit_comment`, `scripts/delete_comment`, and `scripts/transition` for you to try out, they should be self-explanatory. Run them without any arguments to get usage details. Have a look at the API and you can probably easily extend it to do other things.
 
+# Credentials
+
+Credentials are stored in a plain-text config file in `.jira.cfg` with `600` permissions, so they can only be read by you (similar to the approach that the `svn` command line client takes).
+
+If you need to change the credentials or API details, just remove the `.jira.cfg` file and next time you run a query you will be prompted to update it.
+
+If you need to connect to multiple jira instances, it's probably easiest just to copy the cloned repo to another directory and run the second copy with your different credentials. 
+
+# Color-coding statuses
+
+You can add a `colors` section in your `.jira.cfg` containing a mapping of statuses to colors. Any of the available [termcolor](http://pypi.python.org/pypi/termcolor/) colors is valid. A default color coding will be generated when the `.jira.cfg` is first created, which you can add to to customise the colors.
+
 # API
 
 The main API is in `lib/jira.py`. You can read the [annotated source code](http://pranavraja.github.com/jira-py/docs/jira.html). Note that the API will probably change around a lot as I just started this.
@@ -50,11 +62,3 @@ To run the tests, you'll need to install [nose](http://pypi.python.org/pypi/nose
 After installing the prerequisites, clone the repo and run:
 
 	nosetests
-
-# Credentials
-
-Credentials are stored in a plain-text config file in `.jira.cfg` with `600` permissions, so they can only be read by you (similar to the approach that the `svn` command line client takes).
-
-If you need to change the credentials or API details, just remove the `.jira.cfg` file and next time you run a query you will be prompted to update it.
-
-If you need to connect to multiple jira instances, it's probably easiest just to copy the cloned repo to another directory and run the second copy with your different credentials. 

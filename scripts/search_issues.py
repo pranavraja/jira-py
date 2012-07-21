@@ -2,16 +2,17 @@ import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import lib.jira as jira
+import lib.config as config
 import json
 from termcolor import colored
 
 def colored_status(status):
-	color = None
-	if status.strip() == 'Closed': color = 'blue'
-	elif status.strip() == 'In Progress': color = 'magenta'
-	elif status.strip() == 'Resolved': color = 'green'
-	else: color = 'yellow'
-	return colored(status, color, attrs=['bold'])
+    parser = config.default_config().parser
+    if not parser.has_section('colors'): return status
+    for option in parser.options('colors'):
+        if status.strip().lower() == option:
+            return colored(status, parser.get('colors', option), attrs=['bold'])
+    return status
 
 def print_results(query):
 	try: issues = jira.Issue.search(query)

@@ -15,5 +15,5 @@ if __name__ == "__main__":
 		print e.response.status, e.response.reason
 		print e.response.read()
 	for comment in comments:
-		print '#%s %s:\n  %s' % (colored(comment.id, 'cyan'), colored(comment.author, 'magenta'), comment.body.replace('\n','\n  '))
+		print '%s %s:\n  %s' % (colored('#%s' % comment.id, 'cyan'), colored(comment.author, 'magenta'), comment.body.replace('\n','\n  '))
 
