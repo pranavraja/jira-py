@@ -7,7 +7,9 @@ def get_input(message):
 	message_file.write('%s\n' % message)
 	fname = message_file.name
 	message_file.close()
-	editor = os.environ.get('EDITOR') or 'nano'
+	editor = 'nano'
+	if os.name == 'nt': editor = 'notepad'
+	editor = os.environ.get('EDITOR') or editor
 	subprocess.call([editor, fname])
 	with open(fname) as f: 
 		return ''.join(f.readlines()[1:]).strip()
