@@ -232,5 +232,5 @@ class Comment(object):
 #
 	def delete(self):
 		response = self.api().send('DELETE', 'issue/%s/comment/%s' % (self.issue_key, self.id), { })
-		if response.status != 200: raise APIException('could not delete comment %s/%s' % (self.issue_key, id), response)
+		if response.status != 204: raise APIException('could not delete comment %s/%s' % (self.issue_key, id), response)
 
