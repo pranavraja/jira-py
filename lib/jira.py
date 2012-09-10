@@ -207,7 +207,7 @@ class Comment(object):
 		if response.status == 200:
 			return cls(issue_key, json.load(response))
 		else:
-			raise APIException('could not get comment %s/%s' % (key, id), response)
+			raise APIException('could not get comment %s/%s' % (issue_key, id), response)
 
 # Adds a comment `comment` for issue with key `issue_key`.
 #
@@ -232,5 +232,5 @@ class Comment(object):
 #
 	def delete(self):
 		response = self.api().send('DELETE', 'issue/%s/comment/%s' % (self.issue_key, self.id), { })
-		if response.status != 200: raise APIException('could not delete comment %s/%s' % (key, id), response)
+		if response.status != 200: raise APIException('could not delete comment %s/%s' % (self.issue_key, id), response)
 

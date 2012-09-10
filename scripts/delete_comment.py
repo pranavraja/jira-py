@@ -15,4 +15,4 @@ if __name__ == "__main__":
 		sys.exit(0)
 	issueKey = sys.argv[1]
 	comment_id = raw_input('Comment ID: ')
-	main(issue_key, comment_id)
+	main(issueKey, comment_id)
